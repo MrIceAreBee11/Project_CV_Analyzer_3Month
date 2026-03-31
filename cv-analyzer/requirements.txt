@@ -1,0 +1,18 @@
+pip freeze > requirements.txt
+```
+
+File ini **aman di-push** ke GitHub.
+
+---
+
+**Alur kolaborasinya jadi seperti ini:**
+```
+Kamu push ke GitHub
+        ↓
+Rekan kerja clone/pull
+        ↓
+cp .env.example .env
+        ↓
+Isi password MySQL sendiri
+        ↓
+Jalankan project

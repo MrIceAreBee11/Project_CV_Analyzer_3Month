@@ -18,3 +18,23 @@ class CvDocumentRepository(ICvDocumentRepository):
             CvDocument.uuid == uuid,
             CvDocument.deleted_at == None
         ).first()
+    
+    def find_by_id(self, document_id: int):
+        """Cari cv_document berdasarkan ID."""
+        return self.db.query(CvDocument).filter(
+            CvDocument.id == document_id
+        ).first()
+
+    def update(self, cv_document):
+        """Update status cv_document."""
+        model = self.db.query(CvDocument).filter(
+            CvDocument.id == cv_document.id
+        ).first()
+
+        if not model:
+            raise ValueError(f"CvDocument id={cv_document.id} tidak ditemukan")
+
+        model.status = cv_document.status
+        self.db.commit()
+        self.db.refresh(model)
+        return model

@@ -17,3 +17,6 @@ class CvOcrResultRepository(ICvOcrResultRepository):
         return self.db.query(CvOcrResult).filter(
             CvOcrResult.cv_document_id == cv_document_id
         ).order_by(CvOcrResult.page_number).all()
+    
+    def find_by_cv_document_id(self, cv_document_id: int) -> list[CvOcrResult]:
+        return self.find_by_document_id(cv_document_id)

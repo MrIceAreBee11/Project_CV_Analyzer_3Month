@@ -10,3 +10,7 @@ CV Analyzer OCR adalah sistem untuk membaca dokumen CV atau resume dalam format 
 4. Install dependencies: `pip install -r requirements.txt`
 5. Jalankan migration: `alembic upgrade head`
 6. Jalankan server: `python -m uvicorn main:app --reload --port 8000`
+
+
+## UPDATE
+1. Phase I selesai

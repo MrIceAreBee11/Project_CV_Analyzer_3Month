@@ -1,6 +1,6 @@
 """
 Alembic Migration: Phase 2 - Basic Parser Tables
-Revision  : phase2_001
+Revision  : f7e8d9c0b1a2
 Revises   : 5b1d161f4d6c
 Create Date: 2025-04-01
 

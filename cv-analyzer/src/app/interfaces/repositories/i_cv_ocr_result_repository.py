@@ -10,3 +10,8 @@ class ICvOcrResultRepository(ABC):
     @abstractmethod
     def find_by_document_id(self, cv_document_id: int) -> list[CvOcrResult]:
         pass
+
+    @abstractmethod
+    def find_by_cv_document_id(self, cv_document_id: int) -> list[CvOcrResult]:
+        """Cari semua CvOcrResult berdasarkan cv_document_id."""
+        pass

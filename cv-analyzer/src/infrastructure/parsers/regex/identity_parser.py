@@ -32,17 +32,25 @@ class IdentityParser:
 
     # Email: standar RFC format
     EMAIL_PATTERN = re.compile(
-        r"[a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,}",
-        re.IGNORECASE
+        r"[a-zA-Z0-9._%+\-]+"
+        r"@[a-zA-Z0-9\-]+(?:\.[a-zA-Z0-9\-]+)+"
+        r"\.[a-zA-Z]{2,}",
+        re.IGNORECASE,
     )
 
     # Phone: mendukung format Indonesia (+62, 08xx) dan internasional
     PHONE_PATTERN = re.compile(
         r"(?:"
-        r"\+62[\s\-]?\d{3}[\s\-]?\d{4}[\s\-]?\d{3,5}"   # +62 xxx xxxx xxx
-        r"|08\d{2}[\s\-]?\d{4}[\s\-]?\d{3,5}"            # 08xx xxxx xxx
-        r"|\+\d{1,3}[\s\-]?\(?\d{1,4}\)?[\s\-]?\d{3,5}[\s\-]?\d{3,5}"  # internasional
-        r"|\(\d{3}\)[\s\-]?\d{3}[\s\-]?\d{4}"            # (xxx) xxx-xxxx
+        # Indonesia mobile: +62 8xx... atau 08xx...
+        r"(?:(?:\+62|62)[\s\-]?(?:\(0\))?[\s\-]?8\d{2}[\s\-]?\d{3,4}[\s\-]?\d{3,4}"
+        r"|08\d{2}[\s\-]?\d{3,4}[\s\-]?\d{3,4}"
+        r")"
+        r"|"
+        # Landline dengan kode area, contoh: (021) 1234567 atau 021-1234567
+        r"(?:\(\d{2,4}\)[\s\-]?\d{5,8}|\d{2,4}[\s\-]\d{5,8})"
+        r"|"
+        # Internasional umum: +<country><rest> minimal total 8 digit
+        r"(?:\+\d{1,3}[\s\-]?\d{6,12})"
         r")"
     )
 
@@ -62,7 +70,10 @@ class IdentityParser:
     PORTFOLIO_PATTERN = re.compile(
         r"(?:https?://)?(?:www\.)?"
         r"(?!linkedin)(?!inkedin)(?!github)(?!facebook)(?!twitter)(?!instagram)"
-        r"[\w\-]+\.(?:com|id|io|dev|me|co\.id)/[\w\-/]*",
+        r"(?!behance)(?!dribbble)"
+        r"[\w\-]+(?:\.[\w\-]+)*\."
+        r"(?:com|id|io|dev|me|co\.id|net|app|xyz|studio|site|page|tech|digital|online|space|website|info|biz|pro|tv|cc|us|uk)"
+        r"(?:/[\w\-/]*)?",
         re.IGNORECASE
     )
 
@@ -93,6 +104,14 @@ class IdentityParser:
         "github", "portfolio", "website", "objective",
         "summary", "skills", "education", "experience",
         "http", "www", "@", ":",
+        # Section headers Indonesia
+        "ringkasan", "keterampilan", "pendidikan", "pengalaman",
+        "sertifikasi", "pelatihan", "organisasi", "referensi",
+        # Jabatan umum yang sering jadi header CV
+        "pramuniaga", "manager", "engineer", "developer",
+        "designer", "analyst", "staff", "intern", "magang",
+        "koordinator", "supervisor", "direktur", "kepala",
+        "enthusiast", "specialist", "consultant", "officer",
     ]
 
     # ── Public Methods ─────────────────────────────────────────────────────────
@@ -147,36 +166,49 @@ class IdentityParser:
     # ── Private: Name ──────────────────────────────────────────────────────────
 
     def _extract_name(self, lines: list) -> Optional[str]:
-        """
-        Deteksi nama kandidat dari baris-baris awal dokumen.
-
-        Strategi:
-        1. Cek 10 baris pertama dokumen
-        2. Filter baris yang mengandung kata kunci non-nama
-        3. Pilih baris yang punya format seperti nama (2-5 kata, huruf saja)
-        4. Ambil baris pertama yang lolos filter
-        """
-        for line in lines[:10]:
+    
+        for i, line in enumerate(lines[:10]):
             line_lower = line.lower()
 
             # Skip baris yang mengandung keyword bukan nama
             if any(kw in line_lower for kw in self.NON_NAME_KEYWORDS):
                 continue
 
+            # ← TAMBAHKAN INI: skip baris yang mengandung nama kota/lokasi
+            if any(kw in line_lower for kw in self.LOCATION_KEYWORDS):
+                continue
+
             # Skip baris terlalu pendek atau terlalu panjang
             if len(line) < 3 or len(line) > 60:
                 continue
 
-            # Skip baris yang mengandung angka (kemungkinan bukan nama)
+            # Skip baris yang mengandung angka
             if re.search(r"\d", line):
                 continue
 
-            # Cek apakah baris terdiri dari 2-5 kata (format nama umum)
             words = line.split()
+
             if 2 <= len(words) <= 5:
-                # Pastikan semua kata diawali huruf kapital atau semua kapital
                 if all(w[0].isupper() or w.isupper() for w in words if w):
                     return line.strip()
+
+            if len(words) == 1 and line[0].isupper():
+                if i + 1 < len(lines):
+                    next_line = lines[i + 1].strip()
+                    next_lower = next_line.lower()
+
+                if any(kw in next_lower for kw in self.LOCATION_KEYWORDS):
+                    continue
+                if any(kw in next_lower for kw in self.NON_NAME_KEYWORDS):
+                    continue
+                if re.search(r"\d", next_line):
+                    continue
+
+            next_words = next_line.split()
+            if 1 <= len(next_words) <= 3:
+                combined = f"{line.strip()} {next_line}"
+                if all(w[0].isupper() or w.isupper() for w in combined.split() if w):
+                    return combined
 
         return None
 
@@ -185,7 +217,15 @@ class IdentityParser:
     def _extract_email(self, text: str) -> Optional[str]:
         """Ekstrak email pertama yang ditemukan di text."""
         match = self.EMAIL_PATTERN.search(text)
-        return match.group(0).lower() if match else None
+        if not match:
+            return None
+
+        email = match.group(0).strip().lower()
+        # Bersihkan tanda baca yang sering nempel akibat format CV
+        # contoh: "email: nama@gmail.com," -> koma ikut ke-capture
+        email = email.rstrip(".,;()[]")
+
+        return email
 
     # ── Private: Phone ─────────────────────────────────────────────────────────
 
@@ -200,7 +240,7 @@ class IdentityParser:
 
         phone = match.group(0)
         # Normalisasi: hapus spasi dan strip
-        phone = re.sub(r"[\s\-]", "", phone)
+        phone = re.sub(r"[\s\-\(\)]", "", phone)
         return phone
 
     # ── Private: Social Links ──────────────────────────────────────────────────
@@ -219,15 +259,25 @@ class IdentityParser:
         match = self.PORTFOLIO_PATTERN.search(text)
         if not match:
             return None
-
-        url = match.group(0).lower()
-
+ 
+        url = match.group(0).strip()
+        lower_url = url.lower()
+ 
         # Reject jika URL mengandung variasi linkedin (termasuk OCR error)
-        linkedin_variants = ["linkedin", "inkedin", "nkedin", "edin.com"]
-        if any(variant in url for variant in linkedin_variants):
+        excluded = [
+            "linkedin", "inkedin", "nkedin", "edin.com",
+            "email.com", "gmail.com", "yahoo.com",
+            "hotmail.com", "outlook.com"
+        ]
+        if any(ex in lower_url for ex in excluded):
             return None
-
-        return match.group(0)
+ 
+        # Normalisasi: kalau belum ada skema, tambahkan https://
+        if not lower_url.startswith("http://") and not lower_url.startswith("https://"):
+            url = "https://" + url.lstrip("/")
+ 
+        return url
+ 
 
     # ── Private: Location ──────────────────────────────────────────────────────
 

@@ -15,6 +15,10 @@ from abc import ABC, abstractmethod
 from typing import List
 from src.domain.entities.candidate_profile import CandidateProfile
 from src.domain.entities.candidate_skill import CandidateSkill
+from src.domain.entities.candidate_experience import CandidateExperience
+from src.domain.entities.candidate_education import CandidateEducation
+from src.domain.entities.candidate_certification import CandidateCertification
+
 
 
 class ICandidateParserService(ABC):
@@ -54,5 +58,62 @@ class ICandidateParserService(ABC):
         Returns:
             List CandidateSkill yang berhasil ditemukan.
             List kosong jika tidak ada skill yang cocok.
+        """
+        raise NotImplementedError
+    
+    @abstractmethod
+    def extract_experiences(
+        self,
+        raw_text: str,
+        candidate_profile_id: int
+    ) -> List[CandidateExperience]:
+        """
+        Ekstrak daftar pengalaman kerja dari raw text.
+
+        Args:
+            raw_text           : teks mentah hasil OCR
+            candidate_profile_id: ID candidate profile pemilik pengalaman ini
+
+        Returns:
+            List CandidateExperience yang berhasil ditemukan.
+            List kosong jika tidak ada pengalaman yang cocok.
+        """
+        raise NotImplementedError
+    
+    @abstractmethod
+    def extract_educations(
+        self,
+        raw_text: str,
+        candidate_profile_id: int
+    ) -> List[CandidateEducation]:
+        """
+        Ekstrak daftar pendidikan dari raw text.
+
+        Args:
+            raw_text           : teks mentah hasil OCR
+            candidate_profile_id: ID candidate profile pemilik pendidikan ini
+
+        Returns:
+            List CandidateEducation yang berhasil ditemukan.
+            List kosong jika tidak ada pendidikan yang cocok.
+        """
+        raise NotImplementedError
+    
+    @abstractmethod
+    def extract_certifications(
+        self,
+        raw_text: str,
+        candidate_profile_id: int
+    ) -> List[CandidateCertification]:
+        """
+        Ekstrak daftar sertifikasi dari raw text.
+
+        Args:
+            raw_text           : teks mentah hasil OCR
+            candidate_profile_id: ID candidate profile pemilik sertifikasi ini
+
+        Returns:
+            List CandidateCertification yang berhasil ditemukan.
+            List kosong jika tidak ada sertifikasi yang cocok.
         """
         raise NotImplementedError

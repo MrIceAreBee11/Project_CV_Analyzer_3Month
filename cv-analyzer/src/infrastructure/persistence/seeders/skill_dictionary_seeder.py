@@ -121,6 +121,13 @@ SKILL_SEED_DATA = [
     ("Data Mining",          "datamining",       "data",      ["data mine"]),
     ("Data Analysis",        "dataanalysis",     "data",      ["analisis data", "data analytics", "data analyst"]),
     ("Data Entry",           "dataentry",        "data",      ["entri data"]),
+
+    ("Inventory Management",  "inventorymanagement", "operations", ["manajemen persediaan", "inventory"]),
+    ("Point of Sale",         "pointofsale",         "tools",      ["pos", "sistem point of sale", "point of sale system"]),
+    ("Merchandising",         "merchandising",       "operations", ["visual merchandising"]),
+    ("Budgeting",             "budgeting",           "operations", ["penganggaran", "budget"]),
+    ("Customer Service",      "customerservice",     "softskill",  ["pelayanan pelanggan", "customer care"]),
+    ("Teamwork",              "teamwork",            "softskill",  ["kerja sama tim", "team work", "kolaborasi"]),
 ]
 
 

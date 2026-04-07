@@ -76,6 +76,21 @@ class CandidateProfileModel(Base):
         back_populates="candidate_profile",
         cascade="all, delete-orphan"
     )
+    experiences = relationship(
+        "CandidateExperienceModel",
+        back_populates="candidate_profile",
+        cascade="all, delete-orphan"
+    )
+    educations = relationship(
+        "CandidateEducationModel",
+        back_populates="candidate_profile",
+        cascade="all, delete-orphan"
+    )
+    certifications = relationship( 
+        "CandidateCertificationModel",
+        back_populates="candidate_profile",
+        cascade="all, delete-orphan"
+    )
 
     def __repr__(self) -> str:
         return (

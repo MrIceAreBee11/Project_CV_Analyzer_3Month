@@ -10,3 +10,11 @@ class ICvDocumentRepository(ABC):
     @abstractmethod
     def find_by_uuid(self, uuid: str) -> CvDocument | None:
         pass
+    
+    @abstractmethod
+    def find_by_id(self, cv_document_id: int) -> CvDocument | None:
+        """Cari CvDocument berdasarkan primary key ID."""
+        pass
+    @abstractmethod
+    def update(self, cv_document: CvDocument) -> CvDocument:
+        pass

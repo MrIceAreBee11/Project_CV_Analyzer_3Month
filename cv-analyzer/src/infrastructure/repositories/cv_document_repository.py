@@ -19,7 +19,7 @@ class CvDocumentRepository(ICvDocumentRepository):
             CvDocument.deleted_at == None
         ).first()
     
-    def find_by_id(self, document_id: int):
+    def find_by_id(self, document_id: int)-> CvDocument | None:
         """Cari cv_document berdasarkan ID."""
         return self.db.query(CvDocument).filter(
             CvDocument.id == document_id
